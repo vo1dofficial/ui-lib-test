@@ -79,6 +79,11 @@ function VoidUI:CreateWindow(opts)
     local LoadingTitle = opts.LoadingTitle or Title
     local LoadingSubtitle = opts.LoadingSubtitle or "Loading..."
     local LoadingDuration = opts.LoadingDuration or 1.6
+    local KeySystem = opts.KeySystem or false
+    local KeyTitle = opts.KeyTitle or "Key System"
+    local KeySubtitle = opts.KeySubtitle or "Enter access key"
+    local KeyNote = opts.KeyNote or "Join our Discord for the key"
+    local KeyList = opts.Key or {}
 
     local self = setmetatable({}, Window)
     self.Theme = Theme
@@ -309,7 +314,7 @@ function VoidUI:CreateWindow(opts)
         end
     end
 
-    -- Loading overlay
+    -- Loading overlay (animated)
     if LoadingEnabled then
         local Overlay = create("Frame", {
             Name = "LoadingOverlay",
@@ -343,31 +348,214 @@ function VoidUI:CreateWindow(opts)
             Parent = Overlay,
         })
 
-        local Spinner = create("Frame", {
-            BackgroundColor3 = Theme.PanelAlt,
+        local Bar = create("Frame", {
+            BackgroundColor3 = Theme.Panel,
             BorderSizePixel = 0,
-            Size = UDim2.new(0, 32, 0, 32),
-            Position = UDim2.new(0.5, -16, 0.5, 18),
+            Size = UDim2.new(0, 220, 0, 6),
+            Position = UDim2.new(0.5, -110, 0.5, 18),
             Parent = Overlay,
         }, {
-            create("UICorner", { CornerRadius = UDim.new(0, 16) }),
+            create("UICorner", { CornerRadius = UDim.new(0, 4) }),
+        })
+
+        local BarFill = create("Frame", {
+            BackgroundColor3 = Theme.Accent,
+            BorderSizePixel = 0,
+            Size = UDim2.new(0, 0, 1, 0),
+            Parent = Bar,
+        }, {
+            create("UICorner", { CornerRadius = UDim.new(0, 4) }),
+        })
+
+        local Dots = create("TextLabel", {
+            Text = "•",
+            Font = Enum.Font.GothamSemibold,
+            TextSize = 16,
+            TextColor3 = Theme.Accent,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, 0, 0, 18),
+            Position = UDim2.new(0, 0, 0.5, 30),
+            Parent = Overlay,
         })
 
         task.spawn(function()
-            local rot = 0
             local run = true
             task.delay(LoadingDuration, function() run = false end)
             while run do
-                rot = (rot + 20) % 360
-                Spinner.Rotation = rot
-                task.wait(0.03)
+                tween(BarFill, TweenInfo.new(0.35, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 1, 0) })
+                tween(BarFill, TweenInfo.new(0.35, Enum.EasingStyle.Sine, Enum.EasingDirection.In), { Size = UDim2.new(0.15, 0, 1, 0) })
+                Dots.Text = "•"
+                task.wait(0.12)
+                Dots.Text = "••"
+                task.wait(0.12)
+                Dots.Text = "•••"
+                task.wait(0.12)
             end
             tween(Overlay, TweenInfo.new(0.2), { BackgroundTransparency = 1 })
             tween(LTitle, TweenInfo.new(0.2), { TextTransparency = 1 })
             tween(LSub, TweenInfo.new(0.2), { TextTransparency = 1 })
-            tween(Spinner, TweenInfo.new(0.2), { BackgroundTransparency = 1 })
+            tween(Bar, TweenInfo.new(0.2), { BackgroundTransparency = 1 })
+            tween(BarFill, TweenInfo.new(0.2), { BackgroundTransparency = 1 })
+            tween(Dots, TweenInfo.new(0.2), { TextTransparency = 1 })
             task.wait(0.22)
             Overlay:Destroy()
+        end)
+    end
+
+    -- Key system overlay
+    local function normalizeKeys(list)
+        if type(list) == "string" then
+            return { list }
+        end
+        if type(list) ~= "table" then
+            return {}
+        end
+        return list
+    end
+    KeyList = normalizeKeys(KeyList)
+
+    if KeySystem then
+        local KeyOverlay = create("Frame", {
+            Name = "KeyOverlay",
+            BackgroundColor3 = Theme.Background,
+            BackgroundTransparency = 0.05,
+            Size = UDim2.new(1, 0, 1, 0),
+            Parent = Root,
+        }, {
+            create("UICorner", { CornerRadius = UDim.new(0, 14) }),
+        })
+
+        local Card = create("Frame", {
+            BackgroundColor3 = Theme.Panel,
+            BorderSizePixel = 0,
+            Size = UDim2.new(0, 360, 0, 200),
+            Position = UDim2.new(0.5, -180, 0.5, -100),
+            Parent = KeyOverlay,
+        }, {
+            create("UICorner", { CornerRadius = UDim.new(0, 12) }),
+            create("UIStroke", { Color = Theme.Stroke, Thickness = 1 }),
+        })
+
+        create("TextLabel", {
+            Text = KeyTitle,
+            Font = Enum.Font.GothamSemibold,
+            TextSize = 16,
+            TextColor3 = Theme.Text,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, -20, 0, 20),
+            Position = UDim2.new(0, 10, 0, 12),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = Card,
+        })
+
+        create("TextLabel", {
+            Text = KeySubtitle,
+            Font = Enum.Font.Gotham,
+            TextSize = 12,
+            TextColor3 = Theme.Muted,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, -20, 0, 18),
+            Position = UDim2.new(0, 10, 0, 34),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = Card,
+        })
+
+        local Input = create("TextBox", {
+            Text = "",
+            PlaceholderText = "Enter key...",
+            Font = Enum.Font.Gotham,
+            TextSize = 12,
+            TextColor3 = Theme.Text,
+            PlaceholderColor3 = Theme.Muted,
+            BackgroundColor3 = Theme.PanelAlt,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, -20, 0, 28),
+            Position = UDim2.new(0, 10, 0, 70),
+            ClearTextOnFocus = false,
+            Parent = Card,
+        }, {
+            create("UICorner", { CornerRadius = UDim.new(0, 8) }),
+            create("UIStroke", { Color = Theme.Stroke, Thickness = 1 }),
+        })
+
+        local Status = create("TextLabel", {
+            Text = "",
+            Font = Enum.Font.Gotham,
+            TextSize = 12,
+            TextColor3 = Theme.Muted,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, -20, 0, 18),
+            Position = UDim2.new(0, 10, 0, 104),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = Card,
+        })
+
+        local Submit = create("TextButton", {
+            Text = "Submit",
+            Font = Enum.Font.GothamSemibold,
+            TextSize = 13,
+            TextColor3 = Theme.Text,
+            BackgroundColor3 = Theme.Accent,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, -20, 0, 30),
+            Position = UDim2.new(0, 10, 0, 130),
+            AutoButtonColor = false,
+            Parent = Card,
+        }, {
+            create("UICorner", { CornerRadius = UDim.new(0, 8) }),
+        })
+
+        create("TextLabel", {
+            Text = KeyNote,
+            Font = Enum.Font.Gotham,
+            TextSize = 11,
+            TextColor3 = Theme.Muted,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, -20, 0, 18),
+            Position = UDim2.new(0, 10, 1, -22),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = Card,
+        })
+
+        local function isValid(key)
+            for _, k in ipairs(KeyList) do
+                if tostring(k) == tostring(key) then
+                    return true
+                end
+            end
+            return false
+        end
+
+        local function unlock()
+            tween(KeyOverlay, TweenInfo.new(0.2), { BackgroundTransparency = 1 })
+            for _, child in ipairs(Card:GetDescendants()) do
+                if child:IsA("TextLabel") then
+                    tween(child, TweenInfo.new(0.2), { TextTransparency = 1 })
+                elseif child:IsA("TextBox") then
+                    tween(child, TweenInfo.new(0.2), { BackgroundTransparency = 1, TextTransparency = 1 })
+                elseif child:IsA("TextButton") then
+                    tween(child, TweenInfo.new(0.2), { BackgroundTransparency = 1, TextTransparency = 1 })
+                end
+            end
+            task.wait(0.22)
+            KeyOverlay:Destroy()
+        end
+
+        local function submitKey()
+            local key = Input.Text
+            if isValid(key) then
+                Status.Text = "Access granted"
+                Status.TextColor3 = Theme.Accent
+                unlock()
+            else
+                Status.Text = "Invalid key"
+                Status.TextColor3 = Color3.fromRGB(255, 90, 90)
+            end
+        end
+
+        Submit.MouseButton1Click:Connect(submitKey)
+        Input.FocusLost:Connect(function(enter)
+            if enter then submitKey() end
         end)
     end
 
