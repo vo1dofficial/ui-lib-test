@@ -42,6 +42,20 @@ local function clamp(n, min, max)
     return n
 end
 
+local function listToText(list)
+    if type(list) ~= "table" then
+        return tostring(list or "")
+    end
+    if #list == 0 then
+        return "None specified"
+    end
+    local parts = {}
+    for _, v in ipairs(list) do
+        parts[#parts + 1] = "- " .. tostring(v)
+    end
+    return table.concat(parts, "\n")
+end
+
 -- Theme
 local DefaultTheme = {
     Background = Color3.fromRGB(16, 18, 22),
@@ -655,6 +669,51 @@ function Window:CreateTab(opts)
     end
 
     table.insert(self.Tabs, tab)
+    return tab
+end
+
+function Window:CreateHomeTab(opts)
+    opts = opts or {}
+    local Name = opts.Name or "Home"
+    local Icon = opts.Icon or "home"
+    local Description = opts.Description or "Welcome."
+    local SupportedExecutors = opts.SupportedExecutors or {}
+    local DiscordInvite = opts.DiscordInvite
+    local ExtraInfo = opts.ExtraInfo
+
+    local tab = self:CreateTab({
+        Name = Name,
+        Icon = Icon,
+    })
+
+    local info = tab:CreateSection({ Title = "Welcome" })
+    info:CreateParagraph({
+        Title = Name,
+        Text = Description,
+    })
+
+    local exec = tab:CreateSection({ Title = "Supported Executors" })
+    exec:CreateParagraph({
+        Title = "Executors",
+        Text = listToText(SupportedExecutors),
+    })
+
+    if DiscordInvite then
+        local community = tab:CreateSection({ Title = "Community" })
+        community:CreateParagraph({
+            Title = "Discord",
+            Text = "Invite: " .. tostring(DiscordInvite),
+        })
+    end
+
+    if ExtraInfo then
+        local extra = tab:CreateSection({ Title = "Info" })
+        extra:CreateParagraph({
+            Title = "Details",
+            Text = tostring(ExtraInfo),
+        })
+    end
+
     return tab
 end
 
