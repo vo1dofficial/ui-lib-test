@@ -56,6 +56,50 @@ local function listToText(list)
     return table.concat(parts, "\n")
 end
 
+local function addGradient(inst, colorSeq, transparencySeq, rotation)
+    local g = Instance.new("UIGradient")
+    g.Color = colorSeq
+    if transparencySeq then
+        g.Transparency = transparencySeq
+    end
+    g.Rotation = rotation or 90
+    g.Parent = inst
+    return g
+end
+
+local function addScale(inst, defaultScale)
+    local s = Instance.new("UIScale")
+    s.Scale = defaultScale or 1
+    s.Parent = inst
+    return s
+end
+
+local function pressable(inst, downScale)
+    local s = addScale(inst, 1)
+    local target = downScale or 0.98
+    inst.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            tween(s, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = target })
+        end
+    end)
+    inst.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            tween(s, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 })
+        end
+    end)
+end
+
+local function hoverScale(inst, overScale)
+    local s = inst:FindFirstChildOfClass("UIScale") or addScale(inst, 1)
+    local target = overScale or 1.01
+    inst.MouseEnter:Connect(function()
+        tween(s, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = target })
+    end)
+    inst.MouseLeave:Connect(function()
+        tween(s, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 })
+    end)
+end
+
 -- Theme
 local DefaultTheme = {
     Background = Color3.fromRGB(16, 18, 22),
@@ -63,6 +107,7 @@ local DefaultTheme = {
     PanelAlt = Color3.fromRGB(28, 32, 40),
     Sidebar = Color3.fromRGB(18, 20, 26),
     Accent = Color3.fromRGB(0, 190, 255),
+    Accent2 = Color3.fromRGB(120, 120, 255),
     AccentSoft = Color3.fromRGB(0, 120, 160),
     Text = Color3.fromRGB(230, 234, 240),
     Muted = Color3.fromRGB(140, 150, 165),
@@ -125,6 +170,31 @@ function VoidUI:CreateWindow(opts)
         create("UIStroke", { Color = Theme.Stroke, Thickness = 1 }),
     })
 
+    local RootGradient = addGradient(Root, ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Background),
+        ColorSequenceKeypoint.new(1, Theme.Panel),
+    }), nil, 120)
+
+    local Vignette = create("Frame", {
+        Name = "Vignette",
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 0.7,
+        Size = UDim2.new(1, 0, 1, 0),
+        ZIndex = 0,
+        Parent = Root,
+    }, {
+        create("UICorner", { CornerRadius = UDim.new(0, 14) }),
+    })
+
+    local VignetteGradient = addGradient(Vignette, ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0)),
+    }), NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.75),
+        NumberSequenceKeypoint.new(0.5, 1),
+        NumberSequenceKeypoint.new(1, 0.75),
+    }), 90)
+
     local Topbar = create("Frame", {
         Name = "Topbar",
         Size = UDim2.new(1, 0, 0, 48),
@@ -134,6 +204,25 @@ function VoidUI:CreateWindow(opts)
     }, {
         create("UICorner", { CornerRadius = UDim.new(0, 14) }),
     })
+
+    local TopbarGradient = addGradient(Topbar, ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Panel),
+        ColorSequenceKeypoint.new(1, Theme.PanelAlt),
+    }), nil, 90)
+
+    local AccentLine = create("Frame", {
+        Name = "AccentLine",
+        BackgroundColor3 = Theme.Accent,
+        BorderSizePixel = 0,
+        Size = UDim2.new(1, 0, 0, 2),
+        Position = UDim2.new(0, 0, 1, -2),
+        Parent = Topbar,
+    })
+
+    local AccentLineGradient = addGradient(AccentLine, ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Accent),
+        ColorSequenceKeypoint.new(1, Theme.Accent2),
+    }), nil, 0)
 
     local TopbarMask = create("Frame", {
         Name = "TopbarMask",
@@ -181,7 +270,7 @@ function VoidUI:CreateWindow(opts)
 
     local MinBtn = create("TextButton", {
         Name = "Minimize",
-        Text = "–",
+        Text = "-",
         Font = Enum.Font.GothamBold,
         TextSize = 18,
         TextColor3 = Theme.Muted,
@@ -198,7 +287,7 @@ function VoidUI:CreateWindow(opts)
 
     local CloseBtn = create("TextButton", {
         Name = "Close",
-        Text = "×",
+        Text = "x",
         Font = Enum.Font.GothamBold,
         TextSize = 18,
         TextColor3 = Theme.Muted,
@@ -221,6 +310,11 @@ function VoidUI:CreateWindow(opts)
         BorderSizePixel = 0,
         Parent = Root,
     })
+
+    local SidebarGradient = addGradient(Sidebar, ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Sidebar),
+        ColorSequenceKeypoint.new(1, Theme.Panel),
+    }), nil, 90)
 
     local SidebarList = create("UIListLayout", {
         Padding = UDim.new(0, 6),
@@ -302,6 +396,9 @@ function VoidUI:CreateWindow(opts)
         self:Destroy()
     end)
 
+    pressable(MinBtn, 0.95)
+    pressable(CloseBtn, 0.95)
+
     self._gui = ScreenGui
     self._root = Root
     self._content = Content
@@ -313,6 +410,13 @@ function VoidUI:CreateWindow(opts)
         Root.BackgroundColor3 = self.Theme.Background
         Topbar.BackgroundColor3 = self.Theme.Panel
         TopbarMask.BackgroundColor3 = self.Theme.Panel
+        AccentLine.BackgroundColor3 = self.Theme.Accent
+        if AccentLineGradient then
+            AccentLineGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Accent),
+                ColorSequenceKeypoint.new(1, self.Theme.Accent2 or self.Theme.Accent),
+            })
+        end
         Sidebar.BackgroundColor3 = self.Theme.Sidebar
         TitleLabel.TextColor3 = self.Theme.Text
         SubtitleLabel.TextColor3 = self.Theme.Muted
@@ -320,6 +424,24 @@ function VoidUI:CreateWindow(opts)
         CloseBtn.BackgroundColor3 = self.Theme.PanelAlt
         MinBtn.TextColor3 = self.Theme.Muted
         CloseBtn.TextColor3 = self.Theme.Muted
+        if RootGradient then
+            RootGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Background),
+                ColorSequenceKeypoint.new(1, self.Theme.Panel),
+            })
+        end
+        if TopbarGradient then
+            TopbarGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Panel),
+                ColorSequenceKeypoint.new(1, self.Theme.PanelAlt),
+            })
+        end
+        if SidebarGradient then
+            SidebarGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Sidebar),
+                ColorSequenceKeypoint.new(1, self.Theme.Panel),
+            })
+        end
     end
 
     function self:Destroy()
@@ -594,6 +716,18 @@ function Window:CreateTab(opts)
         create("UIStroke", { Color = Theme.Stroke, Thickness = 1 }),
     })
 
+    local Indicator = create("Frame", {
+        Name = "Indicator",
+        BackgroundColor3 = Theme.Accent,
+        BorderSizePixel = 0,
+        Size = UDim2.new(0, 3, 1, -10),
+        Position = UDim2.new(0, 6, 0, 5),
+        BackgroundTransparency = 1,
+        Parent = TabButton,
+    }, {
+        create("UICorner", { CornerRadius = UDim.new(0, 3) }),
+    })
+
     local TabLabel = create("TextLabel", {
         Name = "Label",
         Text = Name,
@@ -628,6 +762,7 @@ function Window:CreateTab(opts)
         CanvasSize = UDim2.new(0, 0, 0, 0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         ScrollBarThickness = 4,
+        ScrollBarImageColor3 = Theme.AccentSoft,
         BackgroundTransparency = 1,
         Visible = false,
         Parent = self._content,
@@ -652,20 +787,40 @@ function Window:CreateTab(opts)
         _window = self,
     }, Tab)
 
+    TabButton.MouseEnter:Connect(function()
+        tween(TabButton, TweenInfo.new(0.12), { BackgroundColor3 = Theme.Panel })
+    end)
+    TabButton.MouseLeave:Connect(function()
+        if self.ActiveTab ~= tab then
+            tween(TabButton, TweenInfo.new(0.12), { BackgroundColor3 = Theme.PanelAlt })
+        end
+    end)
+
+    pressable(TabButton, 0.985)
+
     TabButton.MouseButton1Click:Connect(function()
         if self.ActiveTab then
             self.ActiveTab.Page.Visible = false
             self.ActiveTab.Button.BackgroundColor3 = Theme.PanelAlt
+            local oldIndicator = self.ActiveTab.Button:FindFirstChild("Indicator")
+            if oldIndicator then
+                tween(oldIndicator, TweenInfo.new(0.12), { BackgroundTransparency = 1 })
+            end
         end
         self.ActiveTab = tab
+        tab.Page.Position = UDim2.new(0, 8, 0, 0)
         tab.Page.Visible = true
         tab.Button.BackgroundColor3 = Theme.Panel
+        tween(Indicator, TweenInfo.new(0.12), { BackgroundTransparency = 0 })
+        tween(tab.Page, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Position = UDim2.new(0, 0, 0, 0) })
     end)
 
     if not self.ActiveTab then
         self.ActiveTab = tab
+        tab.Page.Position = UDim2.new(0, 0, 0, 0)
         tab.Page.Visible = true
         tab.Button.BackgroundColor3 = Theme.Panel
+        Indicator.BackgroundTransparency = 0
     end
 
     table.insert(self.Tabs, tab)
@@ -743,6 +898,13 @@ function Tab:CreateSection(opts)
             SortOrder = Enum.SortOrder.LayoutOrder,
         }),
     })
+
+    addGradient(SectionFrame, ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Panel),
+        ColorSequenceKeypoint.new(1, Theme.PanelAlt),
+    }), nil, 90)
+
+    hoverScale(SectionFrame, 1.008)
 
     local Header = create("TextLabel", {
         Name = "Header",
@@ -828,6 +990,7 @@ function Section:CreateParagraph(opts)
         Position = UDim2.new(0, 0, 0, 20),
         Parent = Wrap,
     })
+    hoverScale(Wrap, 1.006)
     return Wrap
 end
 
@@ -862,6 +1025,8 @@ function Section:CreateButton(opts)
         task.spawn(Callback)
     end)
 
+    pressable(Btn, 0.975)
+    hoverScale(Btn, 1.01)
     return Btn
 end
 
@@ -870,12 +1035,13 @@ function Section:CreateToggle(opts)
     local Name = opts.Name or "Toggle"
     local Default = opts.Default or false
     local Callback = opts.Callback or function(_) end
+    local Description = opts.Description
     local Theme = self.Theme
 
     local Wrap = create("Frame", {
         BackgroundColor3 = Theme.PanelAlt,
         BorderSizePixel = 0,
-        Size = UDim2.new(1, 0, 0, 34),
+        Size = UDim2.new(1, 0, 0, Description and 48 or 34),
         Parent = self.Frame,
     }, {
         create("UICorner", { CornerRadius = UDim.new(0, 10) }),
@@ -893,6 +1059,21 @@ function Section:CreateToggle(opts)
         Position = UDim2.new(0, 10, 0, 0),
         Parent = Wrap,
     })
+
+    if Description then
+        Label.Size = UDim2.new(1, -54, 0, 18)
+        local Desc = create("TextLabel", {
+            Text = Description,
+            Font = Enum.Font.Gotham,
+            TextSize = 11,
+            TextColor3 = Theme.Muted,
+            BackgroundTransparency = 1,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Size = UDim2.new(1, -54, 0, 16),
+            Position = UDim2.new(0, 10, 0, 20),
+            Parent = Wrap,
+        })
+    end
 
     local Toggle = create("Frame", {
         Size = UDim2.new(0, 36, 0, 18),
@@ -914,13 +1095,31 @@ function Section:CreateToggle(opts)
         create("UICorner", { CornerRadius = UDim.new(0, 7) }),
     })
 
+    local StateLabel = create("TextLabel", {
+        Text = Default and "ON" or "OFF",
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 10,
+        TextColor3 = Theme.Muted,
+        BackgroundTransparency = 1,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        Size = UDim2.new(0, 36, 0, 16),
+        Position = UDim2.new(1, -88, 0.5, -8),
+        Parent = Wrap,
+    })
+
     local state = Default
     local function setState(v)
         state = v
         if state then
+            tween(Toggle, TweenInfo.new(0.12), { BackgroundColor3 = Theme.AccentSoft })
             tween(Knob, TweenInfo.new(0.12), { Position = UDim2.new(1, -16, 0.5, -7), BackgroundColor3 = Theme.Accent })
+            StateLabel.Text = "ON"
+            StateLabel.TextColor3 = Theme.Accent
         else
+            tween(Toggle, TweenInfo.new(0.12), { BackgroundColor3 = Theme.Panel })
             tween(Knob, TweenInfo.new(0.12), { Position = UDim2.new(0, 2, 0.5, -7), BackgroundColor3 = Theme.Muted })
+            StateLabel.Text = "OFF"
+            StateLabel.TextColor3 = Theme.Muted
         end
         task.spawn(Callback, state)
     end
@@ -931,6 +1130,7 @@ function Section:CreateToggle(opts)
         end
     end)
 
+    hoverScale(Wrap, 1.01)
     setState(Default)
     return { Set = setState }
 end
@@ -940,12 +1140,13 @@ function Section:CreateInput(opts)
     local Name = opts.Name or "Input"
     local Placeholder = opts.Placeholder or ""
     local Callback = opts.Callback or function(_) end
+    local Description = opts.Description
     local Theme = self.Theme
 
     local Wrap = create("Frame", {
         BackgroundColor3 = Theme.PanelAlt,
         BorderSizePixel = 0,
-        Size = UDim2.new(1, 0, 0, 40),
+        Size = UDim2.new(1, 0, 0, Description and 54 or 40),
         Parent = self.Frame,
     }, {
         create("UICorner", { CornerRadius = UDim.new(0, 10) }),
@@ -964,6 +1165,21 @@ function Section:CreateInput(opts)
         Parent = Wrap,
     })
 
+    if Description then
+        local Desc = create("TextLabel", {
+            Text = Description,
+            Font = Enum.Font.Gotham,
+            TextSize = 11,
+            TextColor3 = Theme.Muted,
+            BackgroundTransparency = 1,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Size = UDim2.new(1, -12, 0, 14),
+            Position = UDim2.new(0, 10, 0, 22),
+            Parent = Wrap,
+        })
+    end
+
+    local BoxY = Description and 32 or 20
     local Box = create("TextBox", {
         Text = "",
         PlaceholderText = Placeholder,
@@ -974,7 +1190,7 @@ function Section:CreateInput(opts)
         BackgroundColor3 = Theme.Panel,
         BorderSizePixel = 0,
         Size = UDim2.new(1, -20, 0, 18),
-        Position = UDim2.new(0, 10, 0, 20),
+        Position = UDim2.new(0, 10, 0, BoxY),
         ClearTextOnFocus = false,
         Parent = Wrap,
     }, {
@@ -985,6 +1201,7 @@ function Section:CreateInput(opts)
         task.spawn(Callback, Box.Text, enter)
     end)
 
+    hoverScale(Wrap, 1.01)
     return Box
 end
 
@@ -995,12 +1212,13 @@ function Section:CreateSlider(opts)
     local Max = opts.Max or 100
     local Default = opts.Default or Min
     local Callback = opts.Callback or function(_) end
+    local Description = opts.Description
     local Theme = self.Theme
 
     local Wrap = create("Frame", {
         BackgroundColor3 = Theme.PanelAlt,
         BorderSizePixel = 0,
-        Size = UDim2.new(1, 0, 0, 44),
+        Size = UDim2.new(1, 0, 0, Description and 60 or 44),
         Parent = self.Frame,
     }, {
         create("UICorner", { CornerRadius = UDim.new(0, 10) }),
@@ -1018,6 +1236,20 @@ function Section:CreateSlider(opts)
         Position = UDim2.new(0, 10, 0, 6),
         Parent = Wrap,
     })
+
+    if Description then
+        local Desc = create("TextLabel", {
+            Text = Description,
+            Font = Enum.Font.Gotham,
+            TextSize = 11,
+            TextColor3 = Theme.Muted,
+            BackgroundTransparency = 1,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Size = UDim2.new(1, -12, 0, 14),
+            Position = UDim2.new(0, 10, 0, 22),
+            Parent = Wrap,
+        })
+    end
 
     local ValueLabel = create("TextLabel", {
         Text = tostring(Default),
@@ -1031,11 +1263,12 @@ function Section:CreateSlider(opts)
         Parent = Wrap,
     })
 
+    local TrackY = Description and 36 or 26
     local Track = create("Frame", {
         BackgroundColor3 = Theme.Panel,
         BorderSizePixel = 0,
         Size = UDim2.new(1, -20, 0, 8),
-        Position = UDim2.new(0, 10, 0, 26),
+        Position = UDim2.new(0, 10, 0, TrackY),
         Parent = Wrap,
     }, {
         create("UICorner", { CornerRadius = UDim.new(0, 4) }),
@@ -1054,7 +1287,7 @@ function Section:CreateSlider(opts)
     local function setValue(v)
         v = clamp(v, Min, Max)
         local alpha = (v - Min) / (Max - Min)
-        Fill.Size = UDim2.new(alpha, 0, 1, 0)
+        tween(Fill, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(alpha, 0, 1, 0) })
         ValueLabel.Text = tostring(math.floor(v))
         task.spawn(Callback, v)
     end
@@ -1078,6 +1311,7 @@ function Section:CreateSlider(opts)
         end
     end)
 
+    hoverScale(Wrap, 1.01)
     setValue(Default)
     return { Set = setValue }
 end
@@ -1087,12 +1321,13 @@ function Section:CreateDropdown(opts)
     local Name = opts.Name or "Dropdown"
     local Items = opts.Items or {}
     local Callback = opts.Callback or function(_) end
+    local Description = opts.Description
     local Theme = self.Theme
 
     local Wrap = create("Frame", {
         BackgroundColor3 = Theme.PanelAlt,
         BorderSizePixel = 0,
-        Size = UDim2.new(1, 0, 0, 40),
+        Size = UDim2.new(1, 0, 0, Description and 54 or 40),
         Parent = self.Frame,
     }, {
         create("UICorner", { CornerRadius = UDim.new(0, 10) }),
@@ -1111,15 +1346,31 @@ function Section:CreateDropdown(opts)
         Parent = Wrap,
     })
 
+    if Description then
+        local Desc = create("TextLabel", {
+            Text = Description,
+            Font = Enum.Font.Gotham,
+            TextSize = 11,
+            TextColor3 = Theme.Muted,
+            BackgroundTransparency = 1,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Size = UDim2.new(1, -12, 0, 14),
+            Position = UDim2.new(0, 10, 0, 22),
+            Parent = Wrap,
+        })
+    end
+
+    local ButtonY = Description and 32 or 20
+    local selected = nil
     local Button = create("TextButton", {
-        Text = "Select",
+        Text = "Select (" .. tostring(#Items) .. ")",
         Font = Enum.Font.Gotham,
         TextSize = 12,
         TextColor3 = Theme.Muted,
         BackgroundColor3 = Theme.Panel,
         BorderSizePixel = 0,
         Size = UDim2.new(1, -20, 0, 18),
-        Position = UDim2.new(0, 10, 0, 20),
+        Position = UDim2.new(0, 10, 0, ButtonY),
         AutoButtonColor = false,
         Parent = Wrap,
     }, {
@@ -1127,11 +1378,12 @@ function Section:CreateDropdown(opts)
     })
 
     local Open = false
+    local ListY = Description and 54 or 40
     local List = create("Frame", {
         BackgroundColor3 = Theme.Panel,
         BorderSizePixel = 0,
         Size = UDim2.new(1, -20, 0, 0),
-        Position = UDim2.new(0, 10, 0, 40),
+        Position = UDim2.new(0, 10, 0, ListY),
         ClipsDescendants = true,
         Parent = Wrap,
     }, {
@@ -1166,6 +1418,7 @@ function Section:CreateDropdown(opts)
                 create("UICorner", { CornerRadius = UDim.new(0, 6) }),
             })
             Option.MouseButton1Click:Connect(function()
+                selected = item
                 Button.Text = tostring(item)
                 task.spawn(Callback, item)
                 Open = false
@@ -1182,10 +1435,14 @@ function Section:CreateDropdown(opts)
         tween(List, TweenInfo.new(0.16), { Size = UDim2.new(1, -20, 0, height) })
     end)
 
+    hoverScale(Wrap, 1.01)
     return {
         SetItems = function(newItems)
             Items = newItems or {}
             rebuild()
+            if not selected then
+                Button.Text = "Select (" .. tostring(#Items) .. ")"
+            end
         end
     }
 end
@@ -1222,6 +1479,16 @@ function Window:Notify(opts)
     }, {
         create("UICorner", { CornerRadius = UDim.new(0, 10) }),
         create("UIStroke", { Color = Theme.Stroke, Thickness = 1 }),
+    })
+
+    local NotifyAccent = create("Frame", {
+        BackgroundColor3 = Theme.Accent,
+        BorderSizePixel = 0,
+        Size = UDim2.new(0, 3, 1, -12),
+        Position = UDim2.new(0, 6, 0, 6),
+        Parent = Card,
+    }, {
+        create("UICorner", { CornerRadius = UDim.new(0, 3) }),
     })
 
     local TitleLabel = create("TextLabel", {
