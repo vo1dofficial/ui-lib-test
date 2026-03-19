@@ -170,31 +170,6 @@ function VoidUI:CreateWindow(opts)
         create("UIStroke", { Color = Theme.Stroke, Thickness = 1 }),
     })
 
-    local RootGradient = addGradient(Root, ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Theme.Background),
-        ColorSequenceKeypoint.new(1, Theme.Panel),
-    }), nil, 120)
-
-    local Vignette = create("Frame", {
-        Name = "Vignette",
-        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-        BackgroundTransparency = 0.7,
-        Size = UDim2.new(1, 0, 1, 0),
-        ZIndex = 0,
-        Parent = Root,
-    }, {
-        create("UICorner", { CornerRadius = UDim.new(0, 14) }),
-    })
-
-    local VignetteGradient = addGradient(Vignette, ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0)),
-    }), NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0.75),
-        NumberSequenceKeypoint.new(0.5, 1),
-        NumberSequenceKeypoint.new(1, 0.75),
-    }), 90)
-
     local Topbar = create("Frame", {
         Name = "Topbar",
         Size = UDim2.new(1, 0, 0, 48),
@@ -204,25 +179,6 @@ function VoidUI:CreateWindow(opts)
     }, {
         create("UICorner", { CornerRadius = UDim.new(0, 14) }),
     })
-
-    local TopbarGradient = addGradient(Topbar, ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Theme.Panel),
-        ColorSequenceKeypoint.new(1, Theme.PanelAlt),
-    }), nil, 90)
-
-    local AccentLine = create("Frame", {
-        Name = "AccentLine",
-        BackgroundColor3 = Theme.Accent,
-        BorderSizePixel = 0,
-        Size = UDim2.new(1, 0, 0, 2),
-        Position = UDim2.new(0, 0, 1, -2),
-        Parent = Topbar,
-    })
-
-    local AccentLineGradient = addGradient(AccentLine, ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Theme.Accent),
-        ColorSequenceKeypoint.new(1, Theme.Accent2),
-    }), nil, 0)
 
     local TopbarMask = create("Frame", {
         Name = "TopbarMask",
@@ -310,11 +266,6 @@ function VoidUI:CreateWindow(opts)
         BorderSizePixel = 0,
         Parent = Root,
     })
-
-    local SidebarGradient = addGradient(Sidebar, ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Theme.Sidebar),
-        ColorSequenceKeypoint.new(1, Theme.Panel),
-    }), nil, 90)
 
     local SidebarList = create("UIListLayout", {
         Padding = UDim.new(0, 6),
@@ -410,13 +361,6 @@ function VoidUI:CreateWindow(opts)
         Root.BackgroundColor3 = self.Theme.Background
         Topbar.BackgroundColor3 = self.Theme.Panel
         TopbarMask.BackgroundColor3 = self.Theme.Panel
-        AccentLine.BackgroundColor3 = self.Theme.Accent
-        if AccentLineGradient then
-            AccentLineGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, self.Theme.Accent),
-                ColorSequenceKeypoint.new(1, self.Theme.Accent2 or self.Theme.Accent),
-            })
-        end
         Sidebar.BackgroundColor3 = self.Theme.Sidebar
         TitleLabel.TextColor3 = self.Theme.Text
         SubtitleLabel.TextColor3 = self.Theme.Muted
@@ -424,24 +368,6 @@ function VoidUI:CreateWindow(opts)
         CloseBtn.BackgroundColor3 = self.Theme.PanelAlt
         MinBtn.TextColor3 = self.Theme.Muted
         CloseBtn.TextColor3 = self.Theme.Muted
-        if RootGradient then
-            RootGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, self.Theme.Background),
-                ColorSequenceKeypoint.new(1, self.Theme.Panel),
-            })
-        end
-        if TopbarGradient then
-            TopbarGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, self.Theme.Panel),
-                ColorSequenceKeypoint.new(1, self.Theme.PanelAlt),
-            })
-        end
-        if SidebarGradient then
-            SidebarGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, self.Theme.Sidebar),
-                ColorSequenceKeypoint.new(1, self.Theme.Panel),
-            })
-        end
     end
 
     function self:Destroy()
@@ -1479,16 +1405,6 @@ function Window:Notify(opts)
     }, {
         create("UICorner", { CornerRadius = UDim.new(0, 10) }),
         create("UIStroke", { Color = Theme.Stroke, Thickness = 1 }),
-    })
-
-    local NotifyAccent = create("Frame", {
-        BackgroundColor3 = Theme.Accent,
-        BorderSizePixel = 0,
-        Size = UDim2.new(0, 3, 1, -12),
-        Position = UDim2.new(0, 6, 0, 6),
-        Parent = Card,
-    }, {
-        create("UICorner", { CornerRadius = UDim.new(0, 3) }),
     })
 
     local TitleLabel = create("TextLabel", {
