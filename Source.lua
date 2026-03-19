@@ -134,33 +134,6 @@ function VoidUI:CreateWindow(opts)
     local Keybind = opts.Keybind or Enum.KeyCode.RightShift
     local Parent = opts.Parent or PlayerGui
     local Theme = opts.Theme or DefaultTheme
-    local ThemePresets = opts.Themes or {
-        Default = DefaultTheme,
-        Ocean = {
-            Background = Color3.fromRGB(12, 16, 24),
-            Panel = Color3.fromRGB(18, 24, 36),
-            PanelAlt = Color3.fromRGB(22, 30, 44),
-            Sidebar = Color3.fromRGB(14, 18, 28),
-            Accent = Color3.fromRGB(0, 200, 255),
-            Accent2 = Color3.fromRGB(60, 140, 255),
-            AccentSoft = Color3.fromRGB(0, 120, 170),
-            Text = Color3.fromRGB(230, 236, 244),
-            Muted = Color3.fromRGB(130, 145, 165),
-            Stroke = Color3.fromRGB(35, 45, 60),
-        },
-        Ember = {
-            Background = Color3.fromRGB(20, 14, 12),
-            Panel = Color3.fromRGB(28, 18, 16),
-            PanelAlt = Color3.fromRGB(36, 22, 18),
-            Sidebar = Color3.fromRGB(22, 14, 12),
-            Accent = Color3.fromRGB(255, 120, 40),
-            Accent2 = Color3.fromRGB(255, 70, 70),
-            AccentSoft = Color3.fromRGB(180, 80, 40),
-            Text = Color3.fromRGB(240, 232, 224),
-            Muted = Color3.fromRGB(160, 140, 130),
-            Stroke = Color3.fromRGB(60, 40, 34),
-        },
-    }
     local LoadingEnabled = opts.LoadingEnabled ~= false
     local LoadingTitle = opts.LoadingTitle or Title
     local LoadingSubtitle = opts.LoadingSubtitle or "Loading..."
@@ -176,7 +149,6 @@ function VoidUI:CreateWindow(opts)
     self.Tabs = {}
     self.ActiveTab = nil
     self.Minimized = false
-    self._themes = ThemePresets
 
     -- Root
     local ScreenGui = create("ScreenGui", {
@@ -896,42 +868,6 @@ function Window:CreateHomeTab(opts)
             Text = tostring(ExtraInfo),
         })
     end
-
-    return tab
-end
-
-function Window:CreateSettingsTab(opts)
-    opts = opts or {}
-    local Name = opts.Name or "Settings"
-    local Icon = opts.Icon or "⚙"
-    local Themes = opts.Themes or self._themes or {}
-    local ThemeNames = {}
-
-    local tab = self:CreateTab({
-        Name = Name,
-        Icon = Icon,
-    })
-
-    local settings = tab:CreateSection({ Title = "Theme" })
-
-    local themeSource = Themes or {}
-
-    for k, _ in pairs(themeSource) do
-        ThemeNames[#ThemeNames + 1] = k
-    end
-    table.sort(ThemeNames)
-
-    settings:CreateDropdown({
-        Name = "Theme",
-        Items = #ThemeNames > 0 and ThemeNames or {"Default"},
-        Description = "Choose a color preset",
-        Callback = function(name)
-            local t = (themeSource and themeSource[name]) or nil
-            if t then
-                self:SetTheme(t)
-            end
-        end,
-    })
 
     return tab
 end
