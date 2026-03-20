@@ -1,25 +1,6 @@
---[[
-
-.----------------.  .----------------.  .----------------.  .----------------.  .----------------.  .----------------.     .----------------.  .----------------. 
-| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |   | .--------------. || .--------------. |
-| |  ____  ____  | || |  _________   | || |  ____  ____  | || |     ____     | || |  _______     | || |      __      | |   | | _____  _____ | || |     _____    | |
-| | |_   ||   _| | || | |_   ___  |  | || | |_  _||_  _| | || |   .'    `.   | || | |_   __ \    | || |     /  \     | |   | ||_   _||_   _|| || |    |_   _|   | |
-| |   | |__| |   | || |   | |_  \_|  | || |   \ \  / /   | || |  /  .--.  \  | || |   | |__) |   | || |    / /\ \    | |   | |  | |    | |  | || |      | |     | |
-| |   |  __  |   | || |   |  _|  _   | || |    > `' <    | || |  | |    | |  | || |   |  __ /    | || |   / ____ \   | |   | |  | '    ' |  | || |      | |     | |
-| |  _| |  | |_  | || |  _| |___/ |  | || |  _/ /'`\ \_  | || |  \  `--'  /  | || |  _| |  \ \_  | || | _/ /    \ \_ | |   | |   \ `--' /   | || |     _| |_    | |
-| | |____||____| | || | |_________|  | || | |____||____| | || |   `.____.'   | || | |____| |___| | || ||____|  |____|| |   | |    `.__.'    | || |    |_____|   | |
-| |              | || |              | || |              | || |              | || |              | || |              | |   | |              | || |              | |
-| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |   | '--------------' || '--------------' |
- '----------------'  '----------------'  '----------------'  '----------------'  '----------------'  '----------------'     '----------------'  '----------------' 
-    __             __  __                              _____       ______                      __       
-   / /_  __  __   / / / /__  _  ______  _________ _   / ___/____  / __/ /__      ______  _____/ /_______
-  / __ \/ / / /  / /_/ / _ \| |/_/ __ \/ ___/ __ `/   \__ \/ __ \/ /_/ __/ | /| / / __ \/ ___/ //_/ ___/
- / /_/ / /_/ /  / __  /  __/>  </ /_/ / /  / /_/ /   ___/ / /_/ / __/ /_ | |/ |/ / /_/ / /  / ,< (__  ) 
-/_.___/\__, /  /_/ /_/\___/_/|_|\____/_/   \__,_/   /____/\____/_/  \__/ |__/|__/\____/_/  /_/|_/____/  
-      /____/   
-
--- ]]
-
+-- HexoraUI: Modular UI Library (inspired by modern hub layouts, not a copy of any library)
+-- Author: VoidHub
+-- Notes: Lightweight, no external assets required. Built for Executors.
 
 local HexoraUI = {}
 HexoraUI.__index = HexoraUI
@@ -4290,6 +4271,43 @@ function Tab:CreateSection(opts)
     }, Section)
 
     return section
+end
+
+function Tab:_getDefaultSection()
+    if self._defaultSection then
+        return self._defaultSection
+    end
+    local section = self:CreateSection({ Title = "Controls" })
+    self._defaultSection = section
+    return section
+end
+
+function Tab:CreateLabel(opts)
+    return self:_getDefaultSection():CreateLabel(opts)
+end
+
+function Tab:CreateParagraph(opts)
+    return self:_getDefaultSection():CreateParagraph(opts)
+end
+
+function Tab:CreateButton(opts)
+    return self:_getDefaultSection():CreateButton(opts)
+end
+
+function Tab:CreateToggle(opts)
+    return self:_getDefaultSection():CreateToggle(opts)
+end
+
+function Tab:CreateInput(opts)
+    return self:_getDefaultSection():CreateInput(opts)
+end
+
+function Tab:CreateSlider(opts)
+    return self:_getDefaultSection():CreateSlider(opts)
+end
+
+function Tab:CreateDropdown(opts)
+    return self:_getDefaultSection():CreateDropdown(opts)
 end
 
 function Section:CreateLabel(opts)
