@@ -20,6 +20,7 @@
 
 -- ]]
 
+
 local HexoraUI = {}
 HexoraUI.__index = HexoraUI
 HexoraUI.IconProviders = {}
@@ -3149,7 +3150,6 @@ local BuiltinMaterialIcons = {
 	["sparkle"] = 4483362748
 }
 HexoraUI.IconSets.material = BuiltinMaterialIcons
-\r\n
 
 -- Services
 local TweenService = game:GetService("TweenService")
@@ -3799,7 +3799,7 @@ function HexoraUI:CreateWindow(opts)
         end
     end
 
-    -- Loading overlay
+    -- Loading overlay (animated)
     if LoadingEnabled then
         local Overlay = create("Frame", {
             Name = "LoadingOverlay",
@@ -4886,7 +4886,7 @@ function Window:Notify(opts)
         Parent = Card,
     })
 
-    -- Notification animations
+    -- Notification animations (slide + fade)
     Card.Position = UDim2.new(1, 20, 0, 0)
     Card.BackgroundTransparency = 1
     for _, child in ipairs(Card:GetChildren()) do
